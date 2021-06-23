@@ -160,8 +160,8 @@ class AndroidApiChecks {
             val c = doc[i]
 
             if (c == '@' && (isLinePrefix ||
-                    doc.startsWith("@param", i, true) ||
-                    doc.startsWith("@return", i, true))
+                        doc.startsWith("@param", i, true) ||
+                        doc.startsWith("@return", i, true))
             ) {
                 // Found it
                 end = i
@@ -238,12 +238,12 @@ class AndroidApiChecks {
             return data
         }
         val file = method.containingClass().getCompilationUnit()?.file
-        if (file!=null&&file is PsiJavaFile) {
+        if (file != null && file is PsiJavaFile) {
             val importList = file.importList
             if (importList != null) {
                 for (importStatement in importList.importStatements) {
                     val str = importStatement.qualifiedName
-                    if (str!=null) {
+                    if (str != null) {
                         val newStr = str.substring(str.lastIndexOf("."))
                         if (newStr == data) {
                             return str
@@ -252,7 +252,7 @@ class AndroidApiChecks {
                 }
             }
         }
-        return method.containingClass().containingPackage().qualifiedName()+"."+data
+        return method.containingClass().containingPackage().qualifiedName() + "." + data
     }
 
     private fun getTypeName(data: String, method: MethodItem): String? {
@@ -287,37 +287,29 @@ class AndroidApiChecks {
                 jsonObject.put("methodName", method.name())
                 jsonObject.put("attribute", attribute.name)
                 jsonObject.put("class", method.containingClass().qualifiedName())
-                jsonObject.put("return", getTypeName(method.returnType()!!.toTypeString(),method))
-                //println(getTypeName(method.returnType()!!.toTypeString(),method))
-                //println("end--")
+                jsonObject.put("return", getTypeName(method.returnType()!!.toTypeString(), method))
                 val jsonArray = JSONArray()
                 for (i in method.parameters()) {
-                    //println(getTypeName(i.type().toTypeString(),method))
-                    jsonArray.put(getTypeName(i.type().toTypeString(),method))
-                      }
+                    jsonArray.put(getTypeName(i.type().toTypeString(), method))
+                }
                 jsonObject.put("param", jsonArray)
                 val perArray = JSONArray()
                 for (value in values) {
                     // var perm = String.valueOf(value.value())
                     var perm = value.toSource()
                     if (perm.indexOf('.') >= 0) perm = perm.substring(perm.lastIndexOf('.') + 1)
-                    println("Method " + method.name()+" permission "+perm)
-                    perArray.put("android.permission."+ perm)
+                    println("Method " + method.name() + " permission " + perm)
+                    perArray.put("android.permission." + perm)
                 }
-                 jsonObject.put("permission", perArray)
-                 jsonMethod!!.put(jsonObject)
+                jsonObject.put("permission", perArray)
+                jsonMethod!!.put(jsonObject)
             }
         }
     }
 
     private fun checkIntentAction(field: FieldItem) {
-        // Intent rules don't apply to support library
-        // if (field.containingClass().qualifiedName().startsWith("android.support.")) {
-        //     return
-        // }
-        // println("Field " + field.name())
         val annotation = field.modifiers.findAnnotation("android.support.annotation.RequiresPermission")
-       if (annotation != null) {
+        if (annotation != null) {
             for (attribute in annotation.attributes()) {
                 var values: List<AnnotationAttributeValue>? = null
                 when (attribute.name) {
@@ -339,42 +331,13 @@ class AndroidApiChecks {
                     // var perm = String.valueOf(value.value())
                     var perm = value.toSource()
                     if (perm.indexOf('.') >= 0) perm = perm.substring(perm.lastIndexOf('.') + 1)
-                   println("Field " + field.name()+" permission "+perm)
-                   perArray.put("android.permission."+ perm)
+                    println("Field " + field.name() + " permission " + perm)
+                    perArray.put("android.permission." + perm)
                 }
-                 jsonObject.put("permission", perArray)
-                 jsonField!!.put(jsonObject)
+                jsonObject.put("permission", perArray)
+                jsonField!!.put(jsonObject)
             }
         }
-        // val hasSdkConstant = field.modifiers.findAnnotation("android.annotation.SdkConstant") != null
-
-        // val text = field.documentation
-
-        // if (text.contains("Broadcast Action:") ||
-        //     text.contains("protected intent") && text.contains("system")
-        // ) {
-        //     if (!hasBehavior) {
-        //         reporter.report(
-        //             Issues.BROADCAST_BEHAVIOR, field,
-        //             "Field '" + field.name() + "' is missing @BroadcastBehavior"
-        //         )
-        //     }
-        //     if (!hasSdkConstant) {
-        //         reporter.report(
-        //             Issues.SDK_CONSTANT, field, "Field '" + field.name() +
-        //                 "' is missing @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)"
-        //         )
-        //     }
-        // }
-
-        // if (text.contains("Activity Action:")) {
-        //     if (!hasSdkConstant) {
-        //         reporter.report(
-        //             Issues.SDK_CONSTANT, field, "Field '" + field.name() +
-        //                 "' is missing @SdkConstant(SdkConstantType.ACTIVITY_INTENT_ACTION)"
-        //         )
-        //     }
-        // }
     }
 
     private fun checkVariable(
@@ -420,6 +383,7 @@ class AndroidApiChecks {
 
     companion object {
         val constantPattern: Pattern = Pattern.compile("[A-Z]{3,}_([A-Z]{3,}|\\*)")
+
         @Suppress("SpellCheckingInspection")
         val nullPattern: Pattern = Pattern.compile("\\bnull\\b")
         var jsonMethod: JSONArray? = null
